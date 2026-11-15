@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent" android:layout_height="match_parent" android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="vertical" android:padding="20dp">
+
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="NoorAzan" android:textColor="@color/emerald_primary" android:textSize="26sp" android:textStyle="bold" />
+        <TextView android:id="@+id/tvCurrentDate" android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_marginTop="2dp" android:text="Sunday, November 15, 2026" android:textColor="@color/text_secondary" android:textSize="14sp" />
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="16dp" app:cardBackgroundColor="@color/card_bg"
+            app:cardCornerRadius="14dp" app:cardElevation="1dp" app:strokeColor="#E0E6E3" app:strokeWidth="1dp">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:gravity="center_vertical" android:orientation="horizontal" android:padding="12dp">
+                <ImageView android:layout_width="22dp" android:layout_height="22dp" android:contentDescription="Location" android:src="@drawable/ic_location" />
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp" android:layout_weight="1" android:orientation="vertical">
+                    <TextView android:id="@+id/tvLocation" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Detecting location..." android:textColor="@color/text_primary" android:textSize="14sp" android:textStyle="bold" />
+                    <TextView android:id="@+id/tvMethodBadge" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="Muslim World League (MWL)" android:textColor="@color/text_secondary" android:textSize="12sp" />
+                </LinearLayout>
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnRefreshLocation" style="@style/Widget.Material3.Button.TextButton"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="Update GPS" android:textColor="@color/emerald_primary" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="16dp" app:cardBackgroundColor="@color/emerald_primary"
+            app:cardCornerRadius="20dp" app:cardElevation="4dp">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:gravity="center" android:orientation="vertical" android:padding="24dp">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:letterSpacing="0.1" android:text="NEXT PRAYER" android:textColor="#C8E6C9" android:textSize="12sp" android:textStyle="bold" />
+                <TextView android:id="@+id/tvNextPrayerName" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp" android:text="Dhuhr (الظهر)" android:textColor="@android:color/white" android:textSize="28sp" android:textStyle="bold" />
+                <TextView android:id="@+id/tvNextPrayerTime" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp" android:text="12:15 PM" android:textColor="@color/gold_accent" android:textSize="22sp" android:textStyle="bold" />
+                <TextView android:id="@+id/tvCountdown" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp" android:fontFamily="monospace" android:text="-01:24:10" android:textColor="@android:color/white" android:textSize="32sp" android:textStyle="bold" />
+                <TextView android:id="@+id/tvAzanStatus" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp" android:background="#26FFFFFF" android:paddingHorizontal="12dp"
+                    android:paddingVertical="4dp" android:text="Azan Enabled • Scheduled" android:textColor="@android:color/white" android:textSize="12sp" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="16dp" app:cardBackgroundColor="@color/card_bg"
+            app:cardCornerRadius="16dp" app:cardElevation="1dp" app:strokeColor="#E0E6E3" app:strokeWidth="1dp">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="vertical" android:padding="16dp">
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:text="Today's Five Prayers" android:textColor="@color/text_primary" android:textSize="16sp" android:textStyle="bold" />
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp" android:orientation="horizontal" android:weightSum="5">
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:orientation="vertical">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Fajr" android:textColor="@color/text_secondary" android:textSize="12sp" />
+                        <TextView android:id="@+id/tvFajrQuick" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="05:10" android:textColor="@color/text_primary" android:textSize="12sp" android:textStyle="bold" />
+                    </LinearLayout>
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:orientation="vertical">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Dhuhr" android:textColor="@color/text_secondary" android:textSize="12sp" />
+                        <TextView android:id="@+id/tvDhuhrQuick" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="12:15" android:textColor="@color/text_primary" android:textSize="12sp" android:textStyle="bold" />
+                    </LinearLayout>
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:orientation="vertical">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Asr" android:textColor="@color/text_secondary" android:textSize="12sp" />
+                        <TextView android:id="@+id/tvAsrQuick" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="03:30" android:textColor="@color/text_primary" android:textSize="12sp" android:textStyle="bold" />
+                    </LinearLayout>
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:orientation="vertical">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Maghrib" android:textColor="@color/text_secondary" android:textSize="12sp" />
+                        <TextView android:id="@+id/tvMaghribQuick" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="05:45" android:textColor="@color/text_primary" android:textSize="12sp" android:textStyle="bold" />
+                    </LinearLayout>
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:orientation="vertical">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Isha" android:textColor="@color/text_secondary" android:textSize="12sp" />
+                        <TextView android:id="@+id/tvIshaQuick" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="07:05" android:textColor="@color/text_primary" android:textSize="12sp" android:textStyle="bold" />
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="16dp" android:orientation="horizontal">
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnTestAzan" style="@style/Widget.Material3.Button.TonalButton" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginEnd="8dp" android:layout_weight="1" android:text="Preview Azan" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnStopAzan" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="8dp" android:layout_weight="1" android:text="Stop Audio" />
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>

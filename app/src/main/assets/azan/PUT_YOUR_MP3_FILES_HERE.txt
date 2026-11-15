@@ -1,0 +1,11 @@
+====================================================================
+HOW TO ADD YOUR CUSTOM AZAN AUDIO FILES
+====================================================================
+
+Place your two MP3 files directly inside this folder:
+  app/src/main/assets/azan/
+
+Required Filenames (case-sensitive, all lowercase):
+  1. fajr.mp3   -> Played automatically at Fajr prayer time.
+  2. azan.mp3   -> Played automatically at Dhuhr, Asr, Maghrib, and Isha.
+====================================================================
