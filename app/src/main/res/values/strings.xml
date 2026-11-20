@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="app_name">NoorAzan</string>
-    <string name="nav_home">Home</string>
-    <string name="nav_prayer_times">Prayer Times</string>
-    <string name="nav_qibla">Qibla</string>
-    <string name="nav_map">Map</string>
-    <string name="nav_settings">Settings</string>
-</resources>

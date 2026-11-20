@@ -1,2 +1,0 @@
--keep class com.noorazan.app.receiver.** { *; }
--keep class com.noorazan.app.service.** { *; }
