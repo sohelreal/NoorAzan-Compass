@@ -189,6 +189,10 @@ fun SettingsScreen(onBack: () -> Unit, requestPerms: () -> Unit) {
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedButton(onClick = { PlayerService.testAzan(ctx) }) { Text(tr("test_azan")) }
+                    OutlinedButton(onClick = {
+                        Alarms.scheduleTest(ctx, 15)
+                        message = tr("test_alarm_scheduled")
+                    }) { Text(tr("test_alarm_15s")) }
                     if (hasAzanFile) {
                         TextButton(onClick = {
                             PlayerService.azanFile(ctx).delete()
@@ -257,7 +261,7 @@ fun SettingsScreen(onBack: () -> Unit, requestPerms: () -> Unit) {
             SectionTitle(tr("about"))
             NoorCard(Modifier.padding(horizontal = 16.dp)) {
                 Text(tr("about_text"), style = MaterialTheme.typography.bodyMedium)
-                Text("v1.1.0", style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 8.dp))
+                Text("v1.1.1", style = MaterialTheme.typography.bodySmall, modifier = Modifier.padding(top = 8.dp))
             }
             Spacer(Modifier.height(24.dp))
         }

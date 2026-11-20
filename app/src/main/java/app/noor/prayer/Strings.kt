@@ -185,5 +185,7 @@ private val stringsInit = run {
     a("turn_left", "Turn left", "বামে ঘুরুন", "اتجه يساراً")
     a("turn_right", "Turn right", "ডানে ঘুরুন", "اتجه يميناً")
     a("reset", "Reset", "রিসেট", "إعادة ضبط")
+    a("test_alarm_15s", "Test alarm (15s)", "অ্যালার্ম টেস্ট (১৫ সেকেন্ড)", "تجربة الأذان (١٥ ثانية)")
+    a("test_alarm_scheduled", "Azan alarm set for 15 seconds — lock your screen to test.", "১৫ সেকেন্ড পর আযান বাজবে — টেস্ট করতে স্ক্রিন লক করুন।", "سيعمل الأذان بعد ١٥ ثانية — أقفل الشاشة للتجربة.")
     a("ok", "OK", "ঠিক আছে", "حسناً")
 }

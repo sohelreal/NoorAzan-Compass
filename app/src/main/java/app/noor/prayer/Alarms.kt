@@ -12,55 +12,129 @@ import android.os.PowerManager
 import java.time.LocalDate
 
 /**
- * Schedules one exact alarm for the next enabled prayer; each fired alarm schedules the following one.
- * Uses setAlarmClock() whenever permitted so Doze mode and OEM battery killers (Samsung, Xiaomi,
- * Oppo, Vivo, OnePlus, etc.) wake the device on time and allow starting the Azan foreground service.
+ * Shared wake lock used to bridge the gap between AzanReceiver.onReceive() and
+ * PlayerService.onStartCommand() so OEM devices (Samsung, Xiaomi, Oppo, Vivo, OnePlus)
+ * cannot put the CPU back to sleep before full Azan playback begins.
+ */
+object AzanWakeLock {
+    private var lock: PowerManager.WakeLock? = null
+
+    @Synchronized
+    fun acquire(ctx: Context, timeoutMs: Long = 30_000L) {
+        release()
+        val pm = ctx.applicationContext.getSystemService(Context.POWER_SERVICE) as PowerManager
+        lock = runCatching {
+            pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "noor:azan_handoff").apply {
+                setReferenceCounted(false)
+                acquire(timeoutMs)
+            }
+        }.getOrNull()
+    }
+
+    @Synchronized
+    fun release() {
+        runCatching {
+            lock?.let { if (it.isHeld) it.release() }
+        }
+        lock = null
+    }
+}
+
+/**
+ * Schedules exact alarms for all 5 upcoming enabled prayers (Fajr..Isha) using setAlarmClock()
+ * whenever permitted, so Doze mode and OEM battery killers wake the device on time and allow
+ * starting the full-Azan foreground service. Each fired alarm also refreshes the full schedule.
  */
 object Alarms {
+    private const val REQ_BASE = 100
+    private const val REQ_TEST = 199
+
+    private fun scheduleExact(app: Context, am: AlarmManager, reqCode: Int, triggerAtMs: Long, pi: PendingIntent) {
+        val showIntent = PendingIntent.getActivity(
+            app,
+            reqCode + 50,
+            Intent(app, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        val canExact = Build.VERSION.SDK_INT < 31 || am.canScheduleExactAlarms()
+        try {
+            if (canExact) {
+                // setAlarmClock() is exempt from Doze and grants background FGS launch permission on Android 12-16.
+                am.setAlarmClock(AlarmManager.AlarmClockInfo(triggerAtMs, showIntent), pi)
+            } else {
+                am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAtMs, pi)
+            }
+        } catch (e: SecurityException) {
+            runCatching { am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAtMs, pi) }
+                .onFailure { am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAtMs, pi) }
+        }
+    }
+
     fun scheduleNext(ctx: Context) {
         val app = ctx.applicationContext
         val am = app.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val now = System.currentTimeMillis()
-        var pick: Pair<Int, Long>? = null
         val today = LocalDate.now()
-        search@ for (d in 0..2) {
-            val day = PrayerCalc.day(today.plusDays(d.toLong())) ?: continue
-            for (p in 0..4) {
+
+        // Schedule the next occurrence of each of the 5 prayers independently.
+        for (p in 0..4) {
+            val intent = Intent(app, AzanReceiver::class.java).putExtra("idx", p)
+            if (!Prefs.notify[p]) {
+                val existing = PendingIntent.getBroadcast(
+                    app,
+                    REQ_BASE + p,
+                    intent,
+                    PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE
+                )
+                existing?.let { am.cancel(it) }
+                continue
+            }
+
+            var triggerMs: Long? = null
+            for (d in 0..2) {
+                val day = PrayerCalc.day(today.plusDays(d.toLong())) ?: continue
                 val ms = day.prayer(p)
-                if (ms > now + 500 && Prefs.notify[p]) {
-                    pick = p to ms
-                    break@search
+                if (ms > now + 1000L) {
+                    triggerMs = ms
+                    break
                 }
             }
+
+            if (triggerMs == null) {
+                val existing = PendingIntent.getBroadcast(
+                    app,
+                    REQ_BASE + p,
+                    intent,
+                    PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE
+                )
+                existing?.let { am.cancel(it) }
+                continue
+            }
+
+            val pi = PendingIntent.getBroadcast(
+                app,
+                REQ_BASE + p,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+            scheduleExact(app, am, REQ_BASE + p, triggerMs, pi)
         }
+    }
+
+    /** Schedules a real background alarm 15 seconds from now so the user can lock the screen and verify full Azan. */
+    fun scheduleTest(ctx: Context, delaySec: Int = 15) {
+        val app = ctx.applicationContext
+        val am = app.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val intent = Intent(app, AzanReceiver::class.java)
-        if (pick == null) {
-            val pi = PendingIntent.getBroadcast(app, 100, intent, PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE)
-            pi?.let { am.cancel(it) }
-            return
-        }
-        intent.putExtra("idx", pick.first)
-        val pi = PendingIntent.getBroadcast(app, 100, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-        val showIntent = PendingIntent.getActivity(
+            .putExtra("idx", 1)
+            .putExtra("isTest", true)
+        val pi = PendingIntent.getBroadcast(
             app,
-            101,
-            Intent(app, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP),
+            REQ_TEST,
+            intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
-
-        val canExact = Build.VERSION.SDK_INT < 31 || am.canScheduleExactAlarms()
-        try {
-            if (canExact) {
-                // setAlarmClock() is exempt from Doze and grants background FGS launch permission on Android 12–14+.
-                val info = AlarmManager.AlarmClockInfo(pick.second, showIntent)
-                am.setAlarmClock(info, pi)
-            } else {
-                am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, pick.second, pi)
-            }
-        } catch (e: SecurityException) {
-            runCatching { am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, pick.second, pi) }
-                .onFailure { am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, pick.second, pi) }
-        }
+        scheduleExact(app, am, REQ_TEST, System.currentTimeMillis() + delaySec * 1000L, pi)
     }
 }
 
@@ -117,32 +191,34 @@ object Notifier {
 
 class AzanReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        Prefs.init(context.applicationContext)
+        val app = context.applicationContext
+        Prefs.init(app)
         val idx = intent.getIntExtra("idx", 0).coerceIn(0, 4)
-        // Hold a short partial wake lock so OEM devices do not sleep before PlayerService starts.
-        val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
-        val wl = runCatching {
-            pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "noor:azan_receiver").apply {
-                setReferenceCounted(false)
-                acquire(20_000L)
-            }
-        }.getOrNull()
+        val isTest = intent.getBooleanExtra("isTest", false)
+        // Acquire handoff wake lock; PlayerService releases it once its own playback wake lock is active.
+        AzanWakeLock.acquire(app, 30_000L)
+        var startedService = false
         try {
-            if (Prefs.azanMode == 0) {
+            if (Prefs.azanMode == 0 || isTest) {
                 try {
-                    val i = Intent(context, PlayerService::class.java)
+                    val i = Intent(app, PlayerService::class.java)
                         .setAction(PlayerService.ACTION_AZAN)
                         .putExtra("idx", idx)
-                    context.startForegroundService(i)
+                    app.startForegroundService(i)
+                    startedService = true
                 } catch (e: Exception) {
-                    Notifier.postAzan(context, idx, "azan_alert")
+                    Notifier.postAzan(app, idx, "azan_alert")
                 }
             } else {
-                Notifier.postAzan(context, idx, if (Prefs.azanMode == 1) "azan_alert" else "azan_quiet")
+                Notifier.postAzan(app, idx, if (Prefs.azanMode == 1) "azan_alert" else "azan_quiet")
             }
         } finally {
-            Alarms.scheduleNext(context)
-            runCatching { if (wl?.isHeld == true) wl.release() }
+            if (!isTest) {
+                Alarms.scheduleNext(app)
+            }
+            if (!startedService) {
+                AzanWakeLock.release()
+            }
         }
     }
 }

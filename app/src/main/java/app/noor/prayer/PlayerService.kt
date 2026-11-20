@@ -129,10 +129,16 @@ class PlayerService : Service() {
 
     private fun foreground(title: String, text: String, quran: Boolean) {
         val n = Notifier.player(this, title, text, quran, true)
-        if (Build.VERSION.SDK_INT >= 29) {
-            startForeground(NOTIF_ID, n, ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK)
-        } else {
-            startForeground(NOTIF_ID, n)
+        when {
+            Build.VERSION.SDK_INT >= 34 && !quran -> {
+                val type = ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK or
+                    ServiceInfo.FOREGROUND_SERVICE_TYPE_SYSTEM_EXEMPTED
+                startForeground(NOTIF_ID, n, type)
+            }
+            Build.VERSION.SDK_INT >= 29 -> {
+                startForeground(NOTIF_ID, n, ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK)
+            }
+            else -> startForeground(NOTIF_ID, n)
         }
     }
 
@@ -165,6 +171,7 @@ class PlayerService : Service() {
         val i = idx.coerceIn(0, 4)
         val (title, subtitle) = Notifier.azanText(i)
         acquireWakeLock(10 * 60 * 1000L) // Keep CPU awake up to 10 minutes for full Azan playback
+        AzanWakeLock.release()
         PlayerState.error = false
         PlayerState.kind = "azan"
         PlayerState.surah = 0
